@@ -55,7 +55,8 @@ app.use(express.static(__dirname));
 // Telegram MiniApp middleware to check if app is opened from Telegram
 const telegramAuthMiddleware = (req, res, next) => {
   const initData = req.query.initData || req.headers["x-telegram-init-data"];
-  console.log("InitData = ", initData);
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  console.log("InitData = ", initData, ip);
 
   if (initData) {
     try {
@@ -88,14 +89,12 @@ app.get("/", (req, res) => {
 // API endpoint to get user info
 app.get("/api/user", (req, res) => {
   if (req.telegramUser) {
-    console.log("Telegram user", req.telegramUser);
     res.json({
       authenticated: true,
       user: req.telegramUser,
       source: "telegram",
     });
   } else {
-    console.log("No telegram user");
     res.json({
       authenticated: false,
       source: "web",
