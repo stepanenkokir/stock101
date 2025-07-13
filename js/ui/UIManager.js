@@ -33,6 +33,8 @@ export class UIManager {
       restartConfirmText: document.getElementById(DOM_IDS.RESTART_CONFIRM_TEXT),
       restartConfirmYes: document.getElementById(DOM_IDS.RESTART_CONFIRM_YES),
       restartConfirmNo: document.getElementById(DOM_IDS.RESTART_CONFIRM_NO),
+      newGameBtn: document.getElementById(DOM_IDS.NEW_GAME_BTN),
+      closeSettingsBtn: document.getElementById(DOM_IDS.CLOSE_SETTINGS_BTN),
     };
   }
 

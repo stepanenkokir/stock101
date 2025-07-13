@@ -93,6 +93,19 @@ export class EventManager {
         this.cancelRestart()
       );
     }
+
+    // Добавляем обработчики для новых кнопок
+    if (elements.newGameBtn) {
+      this.addEventListener(elements.newGameBtn, "click", () =>
+        this.startNewGame()
+      );
+    }
+
+    if (elements.closeSettingsBtn) {
+      this.addEventListener(elements.closeSettingsBtn, "click", () =>
+        this.closeSettings()
+      );
+    }
   }
 
   bindColorPickerEvents() {
@@ -152,6 +165,15 @@ export class EventManager {
 
   cancelRestart() {
     this.uiManager.hideRestartConfirm();
+  }
+
+  startNewGame() {
+    this.uiManager.hideGameOver();
+    this.game.restart();
+  }
+
+  closeSettings() {
+    this.uiManager.hideSettings();
   }
 
   handleGlobalClick(e) {

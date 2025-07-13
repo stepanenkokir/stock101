@@ -43,6 +43,8 @@ export const DOM_IDS = {
   RESTART_CONFIRM_TEXT: "restartConfirmText",
   RESTART_CONFIRM_YES: "restartConfirmYes",
   RESTART_CONFIRM_NO: "restartConfirmNo",
+  NEW_GAME_BTN: "newGameBtn",
+  CLOSE_SETTINGS_BTN: "closeSettingsBtn",
 };
 
 export const CSS_CLASSES = {

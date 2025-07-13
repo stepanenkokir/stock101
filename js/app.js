@@ -21,8 +21,8 @@ const gameInstance = (() => {
   };
 })();
 
-// Global functions for HTML onclick handlers
-window.startNewGame = () => {
+// Game instance management functions
+const startNewGame = () => {
   return safeExecute(() => {
     const newGame = new Game();
     gameInstance.setGame(newGame);
@@ -39,15 +39,6 @@ window.startNewGame = () => {
   }, "Error starting new game");
 };
 
-window.closeSettings = () => {
-  return safeExecute(() => {
-    const game = gameInstance.getGame();
-    if (game) {
-      game.uiManager.hideSettings();
-    }
-  }, "Error closing settings");
-};
-
 // Initialize game when DOM is loaded
 window.addEventListener("load", () => {
   return safeExecute(() => {
@@ -55,7 +46,9 @@ window.addEventListener("load", () => {
     telegramIntegration = new TelegramIntegration();
 
     // Start the game
-    startNewGame();
+    const newGame = new Game();
+    gameInstance.setGame(newGame);
+    newGame.renderBoard();
 
     // Set up game event listeners for Telegram integration
     const game = gameInstance.getGame();
