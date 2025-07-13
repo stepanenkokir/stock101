@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="description" content="Stock 101 - логическая игра с плитками" />
+    <meta name="keywords" content="игра, логика, плитки, головоломка" />
+    <title>Stock 101</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="header" role="banner">
+      <div class="stat" role="group" aria-label="Статистика игры">
+        <div class="stat-label">Heap</div>
+        <div class="stat-value" id="heap" aria-live="polite">0</div>
+      </div>
+      <div class="stat" role="group" aria-label="Цель игры">
+        <div class="stat-label">Goal</div>
+        <div class="stat-value" id="goal" aria-live="polite">101</div>
+      </div>
+      <div class="stat" role="group" aria-label="Счет игры">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score" aria-live="polite">0</div>
+      </div>
+      <button
+        class="header-btn"
+        id="soundBtn"
+        title="Звук"
+        aria-label="Включить/выключить звук"
+        aria-pressed="true"
+      >
+        <span aria-hidden="true">🔊</span>
+      </button>
+    </header>
+
+    <main class="game-container" role="main">
+      <div
+        class="game-board"
+        id="gameBoard"
+        role="grid"
+        aria-label="Игровое поле"
+      >
+        <!-- Tiles will be added dynamically -->
+      </div>
+    </main>
+
+    <footer class="footer" role="toolbar" aria-label="Панель управления игрой">
+      <button
+        class="footer-btn"
+        id="undoBtn"
+        title="Отменить ход"
+        aria-label="Отменить последний ход"
+      >
+        <span aria-hidden="true">↶</span>
+      </button>
+      <button
+        class="footer-btn"
+        id="repaintBtn"
+        title="Перекрасить плитку"
+        aria-label="Режим перекраски плиток"
+        aria-pressed="false"
+      >
+        <span aria-hidden="true">🎨</span>
+      </button>
+      <button
+        class="footer-btn"
+        id="restartBtn"
+        title="Новая игра"
+        aria-label="Начать новую игру"
+      >
+        <span aria-hidden="true">⟳</span>
+      </button>
+      <button
+        class="footer-btn"
+        id="settingsBtn"
+        title="Настройки"
+        aria-label="Открыть настройки игры"
+      >
+        <span aria-hidden="true">⚙</span>
+      </button>
+    </footer>
+
+    <div
+      class="modal"
+      id="gameOverModal"
+      role="dialog"
+      aria-labelledby="gameOverTitle"
+      aria-describedby="gameOverText"
+      inert=""
+    >
+      <div class="modal-content">
+        <h2 id="gameOverTitle">Игра окончена!</h2>
+        <p id="gameOverText" role="status"></p>
+        <div class="modal-actions">
+          <button onclick="startNewGame()" aria-label="Начать новую игру">
+            Новая игра
+          </button>
+          <button
+            class="footer-btn"
+            id="undoBtn2"
+            title="Отменить ход"
+            aria-label="Отменить последний ход"
+          >
+            <span aria-hidden="true">↶</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="settings-panel"
+      id="settingsPanel"
+      role="dialog"
+      aria-labelledby="settingsTitle"
+      inert=""
+    >
+      <h3 id="settingsTitle" style="text-align: center; margin-bottom: 15px">
+        Настройки
+      </h3>
+      <div>
+        <label for="colorPicker" style="display: block; margin-bottom: 5px"
+          >Цвета плиток:</label
+        >
+        <div
+          class="color-picker"
+          id="colorPicker"
+          role="group"
+          aria-label="Выбор цветов плиток"
+        >
+          <div
+            class="color-option selected"
+            style="background: #ff6b6b"
+            data-color="red"
+            role="button"
+            tabindex="0"
+            aria-label="Красный цвет"
+            aria-pressed="true"
+          ></div>
+          <div
+            class="color-option selected"
+            style="background: #4dabf7"
+            data-color="blue"
+            role="button"
+            tabindex="0"
+            aria-label="Синий цвет"
+            aria-pressed="true"
+          ></div>
+          <div
+            class="color-option selected"
+            style="background: #51cf66"
+            data-color="green"
+            role="button"
+            tabindex="0"
+            aria-label="Зеленый цвет"
+            aria-pressed="true"
+          ></div>
+          <div
+            class="color-option selected"
+            style="background: #ff8cc8"
+            data-color="magenta"
+            role="button"
+            tabindex="0"
+            aria-label="Пурпурный цвет"
+            aria-pressed="true"
+          ></div>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 15px">
+        <button onclick="closeSettings()" aria-label="Закрыть настройки">
+          Закрыть
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="modal"
+      id="restartConfirmModal"
+      role="dialog"
+      aria-labelledby="restartConfirmTitle"
+      aria-describedby="restartConfirmText"
+      inert=""
+    >
+      <div class="modal-content">
+        <h2 id="restartConfirmTitle">🔄 Новая игра</h2>
+        <p id="restartConfirmText" role="status">
+          Вы уверены, что хотите начать новую игру?
+          <br />Текущий прогресс будет потерян.
+        </p>
+        <div class="modal-actions">
+          <button
+            id="restartConfirmYes"
+            class="confirm-btn primary"
+            aria-label="Да, начать новую игру"
+          >
+            Да, начать заново
+          </button>
+          <button
+            id="restartConfirmNo"
+            class="confirm-btn secondary"
+            aria-label="Отмена"
+          >
+            Отмена
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+    <script src="js/mobile-support.js"></script>
+  </body>
+</html>
