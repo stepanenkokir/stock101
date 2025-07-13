@@ -5,39 +5,17 @@ import TelegramIntegration from "./telegram-integration.js";
 // Initialize Telegram integration
 let telegramIntegration = null;
 
-// Game instance manager using IIFE pattern
-const gameInstance = (() => {
-  let game = null;
+// Game instance management
+let currentGame = null;
 
-  return {
-    getGame: () => game,
-    setGame: (newGame) => {
-      // Очищаем старую игру перед установкой новой
-      if (game && typeof game.destroy === "function") {
-        game.destroy();
-      }
-      game = newGame;
-    },
-  };
-})();
-
-// Game instance management functions
-const startNewGame = () => {
-  return safeExecute(() => {
-    const newGame = new Game();
-    gameInstance.setGame(newGame);
-    newGame.renderBoard();
-    newGame.uiManager.hideGameOver();
-
-    // Send game start data to Telegram if available
-    if (telegramIntegration && telegramIntegration.isInTelegram()) {
-      telegramIntegration.sendData({
-        action: "game_started",
-        timestamp: Date.now(),
-      });
-    }
-  }, "Error starting new game");
+const setGame = (newGame) => {
+  if (currentGame && typeof currentGame.destroy === "function") {
+    currentGame.destroy();
+  }
+  currentGame = newGame;
 };
+
+const getGame = () => currentGame;
 
 // Initialize game when DOM is loaded
 window.addEventListener("load", () => {
@@ -47,11 +25,11 @@ window.addEventListener("load", () => {
 
     // Start the game
     const newGame = new Game();
-    gameInstance.setGame(newGame);
+    setGame(newGame);
     newGame.renderBoard();
 
     // Set up game event listeners for Telegram integration
-    const game = gameInstance.getGame();
+    const game = getGame();
     if (game) {
       // Listen for game over events
       game.on("gameOver", (score, goal) => {
@@ -89,32 +67,4 @@ window.addEventListener("load", () => {
       });
     }
   }, "Error loading game");
-});
-
-// Performance optimization with Intersection Observer
-const createIntersectionObserver = () => {
-  if ("IntersectionObserver" in window) {
-    return new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      {
-        threshold: 0.1,
-      }
-    );
-  }
-  return null;
-};
-
-// Initialize observer when DOM is loaded
-window.addEventListener("load", () => {
-  const observer = createIntersectionObserver();
-  if (observer) {
-    const tiles = document.querySelectorAll(".tile");
-    tiles.forEach((tile) => observer.observe(tile));
-  }
 });

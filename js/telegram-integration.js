@@ -16,18 +16,11 @@ class TelegramIntegration {
         // Initialize Telegram Web App
         this.webApp.ready();
 
-        // Get user info
-        this.user = this.webApp.initDataUnsafe?.user;
-
         // Set theme
         this.webApp.setHeaderColor("#1a1a1a");
         this.webApp.setBackgroundColor("#ffffff");
 
         console.log("Telegram Web App initialized");
-        console.log("User:", this.user);
-
-        // Add username to header if available
-        this.addUsernameToHeader();
 
         // Listen for theme changes
         this.webApp.onEvent("themeChanged", () => {
@@ -39,7 +32,7 @@ class TelegramIntegration {
           this.updateViewport();
         });
       } else {
-        // Check if we're authenticated via server
+        // Check server authentication
         await this.checkServerAuth();
       }
     } catch (error) {
@@ -91,7 +84,6 @@ class TelegramIntegration {
 
   updateTheme() {
     if (this.webApp) {
-      const colorScheme = this.webApp.colorScheme;
       const themeParams = this.webApp.themeParams;
 
       // Apply Telegram theme colors
@@ -124,7 +116,6 @@ class TelegramIntegration {
 
   updateViewport() {
     if (this.webApp) {
-      const viewportHeight = this.webApp.viewportHeight;
       const viewportStableHeight = this.webApp.viewportStableHeight;
 
       // Adjust game container height for Telegram viewport
@@ -198,5 +189,4 @@ class TelegramIntegration {
   }
 }
 
-// Export for ES modules
 export default TelegramIntegration;

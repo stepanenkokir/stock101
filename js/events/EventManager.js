@@ -43,15 +43,14 @@ export class EventManager {
   bindButtonEvents() {
     const elements = this.uiManager.getAllElements();
 
-    if (elements.undoBtn) {
-      this.addEventListener(elements.undoBtn, "click", () => this.game.undo());
-      elements.undoBtn.setAttribute("aria-label", "Отменить ход");
-    }
-
-    if (elements.undoBtn2) {
-      this.addEventListener(elements.undoBtn2, "click", () => this.game.undo());
-      elements.undoBtn2.setAttribute("aria-label", "Отменить ход");
-    }
+    // Bind undo buttons (both in footer and modal)
+    const undoButtons = [elements.undoBtn, elements.undoBtnModal].filter(
+      Boolean
+    );
+    undoButtons.forEach((button) => {
+      this.addEventListener(button, "click", () => this.game.undo());
+      button.setAttribute("aria-label", "Отменить ход");
+    });
 
     if (elements.repaintBtn) {
       this.addEventListener(elements.repaintBtn, "click", () =>
@@ -81,7 +80,7 @@ export class EventManager {
       elements.soundBtn.setAttribute("aria-label", "Включить/выключить звук");
     }
 
-    // Добавляем обработчики для кнопок подтверждения перезапуска
+    // Add handlers for restart confirmation buttons
     if (elements.restartConfirmYes) {
       this.addEventListener(elements.restartConfirmYes, "click", () =>
         this.confirmRestart()
@@ -94,7 +93,7 @@ export class EventManager {
       );
     }
 
-    // Добавляем обработчики для новых кнопок
+    // Add handlers for new buttons
     if (elements.newGameBtn) {
       this.addEventListener(elements.newGameBtn, "click", () =>
         this.startNewGame()
@@ -198,9 +197,9 @@ export class EventManager {
         break;
       case "r":
       case "R":
-        if (e.ctrlKey || e.metaKey) {
+        if (!e.ctrlKey && !e.metaKey) {
           e.preventDefault();
-          this.game.restart();
+          this.handleRestart();
         }
         break;
       case "z":
@@ -210,30 +209,37 @@ export class EventManager {
           this.game.undo();
         }
         break;
+      case "p":
+      case "P":
+        e.preventDefault();
+        this.toggleRepaintMode();
+        break;
+      case "s":
+      case "S":
+        e.preventDefault();
+        this.toggleSound();
+        break;
     }
   }
 
   handleEscapeKey() {
     const elements = this.uiManager.getAllElements();
 
+    // Close modals in order of priority
     if (
       elements.gameOverModal &&
-      elements.gameOverModal.style.display === "flex"
+      elements.gameOverModal.style.display !== "none"
     ) {
       elements.gameOverModal.style.display = "none";
       elements.gameOverModal.setAttribute("inert", "");
-    }
-
-    if (
+    } else if (
       elements.settingsPanel &&
-      elements.settingsPanel.style.display === "block"
+      elements.settingsPanel.style.display !== "none"
     ) {
       this.uiManager.hideSettings();
-    }
-
-    if (
+    } else if (
       elements.restartConfirmModal &&
-      elements.restartConfirmModal.style.display === "flex"
+      elements.restartConfirmModal.style.display !== "none"
     ) {
       this.uiManager.hideRestartConfirm();
     }

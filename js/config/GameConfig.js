@@ -5,8 +5,6 @@ export const GAME_CONFIG = {
   GOAL_INCREMENT: 101,
   MAX_HISTORY: 10,
   ANIMATION_DURATION: 300,
-  TOUCH_THRESHOLD: 300,
-  TOUCH_DISTANCE_THRESHOLD: 10,
   COLORS: {
     RED: "red",
     BLUE: "blue",
@@ -28,7 +26,7 @@ export const DOM_IDS = {
   SCORE: "score",
   GAME_BOARD: "gameBoard",
   UNDO_BTN: "undoBtn",
-  UNDO_BTN2: "undoBtn2",
+  UNDO_BTN_MODAL: "undoBtn2",
   REPAINT_BTN: "repaintBtn",
   RESTART_BTN: "restartBtn",
   SETTINGS_BTN: "settingsBtn",
@@ -45,12 +43,4 @@ export const DOM_IDS = {
   RESTART_CONFIRM_NO: "restartConfirmNo",
   NEW_GAME_BTN: "newGameBtn",
   CLOSE_SETTINGS_BTN: "closeSettingsBtn",
-};
-
-export const CSS_CLASSES = {
-  TILE: "tile",
-  TILE_APPEAR: "tile-appear",
-  COLOR_OPTION: "color-option",
-  SELECTED: "selected",
-  GOAL_INDICATOR: "goal-indicator",
 };
