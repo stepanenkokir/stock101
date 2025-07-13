@@ -44,9 +44,9 @@ export class SoundService {
       audioContext.currentTime + 0.1
     );
 
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
-      0.01,
+      0.005,
       audioContext.currentTime + 0.1
     );
 
@@ -208,9 +208,9 @@ export class SoundService {
       audioContext.currentTime + 0.1
     );
 
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.01, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
-      0.01,
+      0.001,
       audioContext.currentTime + 0.1
     );
 
