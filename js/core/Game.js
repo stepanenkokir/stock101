@@ -17,6 +17,9 @@ export class Game {
     this.uiManager = new UIManager();
     this.eventManager = new EventManager(this, this.uiManager);
 
+    // Event system for external listeners
+    this.eventListeners = {};
+
     this.initialize();
   }
 
@@ -85,6 +88,9 @@ export class Game {
 
       this.state.updateScore(totalValue);
       this.state.updateHeap(totalValue);
+
+      // Emit score changed event
+      this.emit("scoreChanged", this.state.getScore());
 
       // Воспроизводим звук соединения плиток
       this.soundService.playSound("merge");
@@ -159,6 +165,8 @@ export class Game {
 
       if (gameOverResult.isOver) {
         this.state.setGameOver(true);
+        // Emit game over event
+        this.emit("gameOver", this.state.getScore(), this.state.getGoal());
         // Воспроизводим звук проигрыша
         this.soundService.playSound("gameOver");
         // Добавляем секундную паузу перед показом диалога
@@ -213,6 +221,36 @@ export class Game {
     }
     if (this.soundService) {
       this.soundService.destroy();
+    }
+    // Clear event listeners
+    this.eventListeners = {};
+  }
+
+  // Event system methods
+  on(eventName, callback) {
+    if (!this.eventListeners[eventName]) {
+      this.eventListeners[eventName] = [];
+    }
+    this.eventListeners[eventName].push(callback);
+  }
+
+  off(eventName, callback) {
+    if (this.eventListeners[eventName]) {
+      this.eventListeners[eventName] = this.eventListeners[eventName].filter(
+        (cb) => cb !== callback
+      );
+    }
+  }
+
+  emit(eventName, ...args) {
+    if (this.eventListeners[eventName]) {
+      this.eventListeners[eventName].forEach((callback) => {
+        try {
+          callback(...args);
+        } catch (error) {
+          console.error(`Error in event listener for ${eventName}:`, error);
+        }
+      });
     }
   }
 }

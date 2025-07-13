@@ -1,0 +1,40 @@
+your_domain.com {
+    # Enable compression
+    encode gzip zstd
+
+    # Security headers
+    header {
+        # Security headers
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        
+        # CORS headers for Telegram
+        Access-Control-Allow-Origin "https://web.telegram.org"
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, X-Telegram-Init-Data"
+        Access-Control-Allow-Credentials true
+    }
+
+    # Handle preflight requests
+    @options {
+        method OPTIONS
+    }
+    respond @options 200
+
+    # Proxy to Express server
+    reverse_proxy localhost:3000 {
+        # Health check
+        health_uri /api/user
+        health_interval 30s
+        health_timeout 10s
+        health_status 200
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/your_domain.com.log
+        format json
+    }
+} 
