@@ -209,11 +209,25 @@ export class EventManager {
 
   async showUserStats() {
     try {
-      const stats = await this.game.gameResultService.getUserStats();
-      this.uiManager.showUserStats(stats);
+      // Проверяем, запущено ли приложение в Telegram
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const stats = await this.game.gameResultService.getUserStats();
+        this.uiManager.showUserStats(stats);
+      } else {
+        // В браузере показываем сообщение о том, что статистика доступна только в Telegram
+        this.uiManager.showTelegramOnlyMessage();
+      }
     } catch (error) {
       console.error("Error loading user stats:", error);
-      // Можно добавить уведомление пользователю об ошибке
+      // Если ошибка 401 в Telegram, показываем сообщение об ошибке
+      if (error.message && error.message.includes("401")) {
+        this.uiManager.showAuthError();
+      } else {
+        this.uiManager.showTelegramOnlyMessage();
+      }
     }
   }
 

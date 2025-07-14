@@ -52,7 +52,32 @@ export class GameResultService {
 
   async getUserBestResult() {
     try {
-      const response = await fetch(`${this.baseUrl}/api/user-best`);
+      // Prepare headers for Telegram user data
+      const headers = {};
+
+      // If we're in Telegram, try to get user data and send it
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const user = window.telegramIntegration.getUser();
+        if (user) {
+          headers["x-telegram-user"] = encodeURIComponent(JSON.stringify(user));
+        }
+
+        // Also try to get initData from Telegram WebApp
+        if (
+          window.telegramIntegration.webApp &&
+          window.telegramIntegration.webApp.initData
+        ) {
+          headers["x-telegram-webapp-init-data"] =
+            window.telegramIntegration.webApp.initData;
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/user-best`, {
+        headers: headers,
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -68,7 +93,32 @@ export class GameResultService {
 
   async getUserStats() {
     try {
-      const response = await fetch(`${this.baseUrl}/api/user-stats`);
+      // Prepare headers for Telegram user data
+      const headers = {};
+
+      // If we're in Telegram, try to get user data and send it
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const user = window.telegramIntegration.getUser();
+        if (user) {
+          headers["x-telegram-user"] = encodeURIComponent(JSON.stringify(user));
+        }
+
+        // Also try to get initData from Telegram WebApp
+        if (
+          window.telegramIntegration.webApp &&
+          window.telegramIntegration.webApp.initData
+        ) {
+          headers["x-telegram-webapp-init-data"] =
+            window.telegramIntegration.webApp.initData;
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/user-stats`, {
+        headers: headers,
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -84,7 +134,32 @@ export class GameResultService {
 
   async getUserInfo() {
     try {
-      const response = await fetch(`${this.baseUrl}/api/user`);
+      // Prepare headers for Telegram user data
+      const headers = {};
+
+      // If we're in Telegram, try to get user data and send it
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const user = window.telegramIntegration.getUser();
+        if (user) {
+          headers["x-telegram-user"] = encodeURIComponent(JSON.stringify(user));
+        }
+
+        // Also try to get initData from Telegram WebApp
+        if (
+          window.telegramIntegration.webApp &&
+          window.telegramIntegration.webApp.initData
+        ) {
+          headers["x-telegram-webapp-init-data"] =
+            window.telegramIntegration.webApp.initData;
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/user`, {
+        headers: headers,
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

@@ -59,7 +59,13 @@ app.use(express.static(path.join(__dirname, "..", "client")));
 
 // Telegram MiniApp middleware to check if app is opened from Telegram
 const telegramAuthMiddleware = (req, res, next) => {
-  const initData = req.query.initData || req.headers["x-telegram-init-data"];
+  // Check for initData in various places where Telegram might send it
+  const initData =
+    req.query.initData ||
+    req.headers["x-telegram-init-data"] ||
+    req.headers["x-telegram-webapp-init-data"] ||
+    req.body?.initData;
+
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   console.log("InitData = ", initData, ip);
 
@@ -77,6 +83,18 @@ const telegramAuthMiddleware = (req, res, next) => {
       }
     } catch (error) {
       console.error("Error parsing Telegram init data:", error);
+    }
+  }
+
+  // Additional check for Telegram WebApp user data in headers
+  const telegramUser = req.headers["x-telegram-user"];
+  if (telegramUser && !req.telegramUser) {
+    try {
+      const userData = JSON.parse(decodeURIComponent(telegramUser));
+      req.telegramUser = userData;
+      console.log("Telegram user authenticated via header:", userData.username);
+    } catch (error) {
+      console.error("Error parsing Telegram user header:", error);
     }
   }
 

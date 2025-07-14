@@ -37,19 +37,23 @@ class TelegramIntegration {
         const hasValidViewport =
           hasTelegramViewport && webApp.viewportStableHeight > 100;
 
-        // Более строгая проверка: должны быть выполнены критические условия
+        // Более мягкая проверка для Telegram Mini App
+        // Если есть Telegram WebApp API, считаем что мы в Telegram
+        const hasTelegramWebAppAPI = true; // Если мы здесь, значит API доступен
+
         const criticalIndicators = [
-          hasValidInitData, // Должны быть валидные initData с пользователем
-          hasValidUserAgent, // Должен быть Telegram User Agent
-          hasValidPlatform, // Должна быть валидная платформа
+          hasTelegramWebAppAPI, // Telegram WebApp API доступен
+          hasValidViewport, // Есть валидный viewport
         ];
 
         const secondaryIndicators = [
+          hasValidInitData, // Есть валидные initData с пользователем
+          hasValidUserAgent, // Должен быть Telegram User Agent
+          hasValidPlatform, // Должна быть валидная платформа
           hasValidTheme, // Должна быть валидная тема
-          hasValidViewport, // Должен быть валидный viewport
         ];
 
-        // Требуем хотя бы 2 критических индикатора И 1 вторичный
+        // Требуем 1 критический индикатор И хотя бы 1 вторичный
         const criticalCount = criticalIndicators.filter(Boolean).length;
         const secondaryCount = secondaryIndicators.filter(Boolean).length;
 
@@ -61,16 +65,27 @@ class TelegramIntegration {
           hasValidViewport,
           criticalCount,
           secondaryCount,
-          initData: webApp.initData,
-          platform: webApp.platform,
-          userAgent: userAgent,
         });
 
-        if (criticalCount >= 2 && secondaryCount >= 1) {
+        if (criticalCount >= 1 && secondaryCount >= 1) {
           this.isTelegramApp = true;
           this.webApp = webApp;
 
           console.log("Telegram WebApp detected and initialized");
+
+          // Try to get user data from initData
+          if (webApp.initData) {
+            try {
+              const params = new URLSearchParams(webApp.initData);
+              const userParam = params.get("user");
+              if (userParam) {
+                this.user = JSON.parse(decodeURIComponent(userParam));
+                console.log("User data extracted from initData:", this.user);
+              }
+            } catch (error) {
+              console.error("Error parsing user data from initData:", error);
+            }
+          }
 
           // Initialize Telegram Web App
           this.webApp.ready();
@@ -89,13 +104,7 @@ class TelegramIntegration {
             this.updateViewport();
           });
         } else {
-          console.log(
-            "Not enough Telegram indicators (critical:",
-            criticalCount,
-            "secondary:",
-            secondaryCount,
-            "), checking server auth"
-          );
+          console.log("Not enough Telegram indicators, checking server auth");
           // Если локальные проверки не показали Telegram, проверяем сервер
           await this.checkServerAuth();
         }
@@ -112,14 +121,31 @@ class TelegramIntegration {
 
   async checkServerAuth() {
     try {
-      const response = await fetch("/api/user");
+      // Prepare headers for Telegram user data
+      const headers = {};
+
+      // If we have user data, send it to server
+      if (this.user) {
+        headers["x-telegram-user"] = encodeURIComponent(
+          JSON.stringify(this.user)
+        );
+      }
+
+      // If we have webApp with initData, send it too
+      if (this.webApp && this.webApp.initData) {
+        headers["x-telegram-webapp-init-data"] = this.webApp.initData;
+      }
+
+      const response = await fetch("/api/user", {
+        headers: headers,
+      });
       const data = await response.json();
 
       if (data.authenticated && data.source === "telegram") {
         this.isTelegramApp = true;
         this.user = data.user;
         this.addUsernameToHeader();
-        console.log("Telegram user authenticated via server:", data.user);
+        console.log("Telegram user authenticated via server");
       } else {
         // Явно устанавливаем false для обычного браузера
         this.isTelegramApp = false;
@@ -261,7 +287,6 @@ class TelegramIntegration {
 
   // Check if running in Telegram
   isInTelegram() {
-    console.log("isInTelegram called, result:", this.isTelegramApp);
     return this.isTelegramApp;
   }
 }

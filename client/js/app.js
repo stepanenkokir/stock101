@@ -94,7 +94,7 @@ window.addEventListener("load", async () => {
 
             // Show main button to share results
             telegramIntegration.showMainButton("Поделиться результатом", () => {
-              const shareText = `🎮 Stock 101\n\nМой результат: ${score} очков\nЦель: ${goal} очков\n\nПопробуй и ты!\nhttps://t.me/Stock101GameBot?start=from_friend`;
+              const shareText = `🎮 Stock 101\n\nМой результат: ${score} очков\nЦель: ${goal} очков\n\nПопробуй и ты!\nhttps://t.me/Stock101SteKirBot?start=from_friend`;
               if (telegramIntegration.webApp) {
                 try {
                   // Try to use switchInlineQuery first

@@ -337,4 +337,128 @@ export class UIManager {
       this.elements.authModal.setAttribute("inert", "");
     }
   }
+
+  showTelegramOnlyMessage() {
+    return safeExecute(() => {
+      // Create modal for Telegram-only message
+      const modal = document.createElement("div");
+      modal.className = "modal telegram-only-modal";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>📱 Статистика</h2>
+            <button class="close-btn" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="telegram-only-message">
+              <div class="telegram-icon">📱</div>
+              <h3>Статистика доступна только в Telegram</h3>
+              <p>Для просмотра вашей персональной статистики откройте игру в Telegram Mini App.</p>
+              
+              <div class="telegram-qr-section">
+                <div class="qr-code">
+                  <img src="tlgbotQR.png" alt="QR код для Telegram бота" />
+                </div>
+                <div class="bot-info">
+                  <p><strong>Наш Telegram бот:</strong></p>
+                  <a href="https://t.me/Stock101SteKirBot" target="_blank" class="bot-link">
+                    @Stock101SteKirBot
+                  </a>
+                  <p class="bot-description">Отсканируйте QR код или нажмите на ссылку, чтобы открыть игру в Telegram</p>
+                </div>
+              </div>
+              
+              <div class="telegram-info">
+                <p><strong>В Telegram вы сможете:</strong></p>
+                <ul>
+                  <li>📊 Видеть количество сыгранных игр</li>
+                  <li>🏆 Отслеживать лучшие результаты</li>
+                  <li>📈 Анализировать прогресс</li>
+                  <li>🎯 Сравнивать с другими игроками</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add close functionality
+      const closeBtn = modal.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        document.body.removeChild(modal);
+      });
+
+      // Close on outside click
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+
+      document.body.appendChild(modal);
+
+      // Принудительно показываем модальное окно
+      modal.style.display = "flex";
+      modal.style.position = "fixed";
+      modal.style.top = "0";
+      modal.style.left = "0";
+      modal.style.width = "100%";
+      modal.style.height = "100%";
+      modal.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      modal.style.zIndex = "9999";
+      modal.style.alignItems = "center";
+      modal.style.justifyContent = "center";
+
+      // Также стилизуем содержимое модального окна
+      const modalContent = modal.querySelector(".modal-content");
+      if (modalContent) {
+        modalContent.style.backgroundColor = "#1a1a1a";
+        modalContent.style.color = "white";
+        modalContent.style.padding = "20px";
+        modalContent.style.borderRadius = "10px";
+        modalContent.style.maxWidth = "500px";
+        modalContent.style.maxHeight = "80vh";
+        modalContent.style.overflow = "auto";
+        modalContent.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.5)";
+      }
+    }, "Ошибка при показе сообщения о Telegram");
+  }
+
+  showAuthError() {
+    return safeExecute(() => {
+      // Create modal for authentication error
+      const modal = document.createElement("div");
+      modal.className = "modal auth-error-modal";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>⚠️ Ошибка авторизации</h2>
+            <button class="close-btn" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="auth-error-message">
+              <div class="error-icon">⚠️</div>
+              <h3>Не удалось загрузить статистику</h3>
+              <p>Попробуйте перезапустить приложение в Telegram или обратитесь к администратору.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add close functionality
+      const closeBtn = modal.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        document.body.removeChild(modal);
+      });
+
+      // Close on outside click
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+
+      document.body.appendChild(modal);
+    }, "Ошибка при показе сообщения об ошибке авторизации");
+  }
 }
