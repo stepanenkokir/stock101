@@ -6,6 +6,7 @@ import compression from "compression";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import dotenv from "dotenv";
+import path from "path";
 
 // Load environment variables
 dotenv.config();
@@ -50,7 +51,7 @@ app.use(
   })
 );
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "..", "client")));
 
 // Telegram MiniApp middleware to check if app is opened from Telegram
 const telegramAuthMiddleware = (req, res, next) => {
