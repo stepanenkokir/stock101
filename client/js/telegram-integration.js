@@ -11,25 +11,66 @@ class TelegramIntegration {
     try {
       // Check if we're in Telegram Web App
       if (window.Telegram && window.Telegram.WebApp) {
-        // Дополнительная проверка: действительно ли мы в Telegram
         const webApp = window.Telegram.WebApp;
+
+        // Проверяем различные признаки того, что мы в Telegram
         const isActuallyInTelegram =
           webApp.initData && webApp.initData.length > 0;
-
-        // Дополнительные проверки
         const userAgent = navigator.userAgent;
         const isTelegramUserAgent =
           userAgent.includes("TelegramWebApp") ||
           userAgent.includes("Telegram");
         const hasTelegramFeatures = webApp.platform && webApp.version;
+        const hasTelegramColorScheme =
+          webApp.themeParams && webApp.themeParams.bg_color;
+        const hasTelegramViewport = webApp.viewportStableHeight > 0;
 
-        if (
-          isActuallyInTelegram ||
-          isTelegramUserAgent ||
-          hasTelegramFeatures
-        ) {
+        // Дополнительные проверки для более точного определения
+        const hasValidInitData =
+          isActuallyInTelegram && webApp.initData.includes("user=");
+        const hasValidUserAgent = isTelegramUserAgent;
+        const hasValidPlatform =
+          hasTelegramFeatures &&
+          (webApp.platform === "ios" || webApp.platform === "android");
+        const hasValidTheme =
+          hasTelegramColorScheme && webApp.themeParams.text_color;
+        const hasValidViewport =
+          hasTelegramViewport && webApp.viewportStableHeight > 100;
+
+        // Более строгая проверка: должны быть выполнены критические условия
+        const criticalIndicators = [
+          hasValidInitData, // Должны быть валидные initData с пользователем
+          hasValidUserAgent, // Должен быть Telegram User Agent
+          hasValidPlatform, // Должна быть валидная платформа
+        ];
+
+        const secondaryIndicators = [
+          hasValidTheme, // Должна быть валидная тема
+          hasValidViewport, // Должен быть валидный viewport
+        ];
+
+        // Требуем хотя бы 2 критических индикатора И 1 вторичный
+        const criticalCount = criticalIndicators.filter(Boolean).length;
+        const secondaryCount = secondaryIndicators.filter(Boolean).length;
+
+        console.log("Telegram detection indicators:", {
+          hasValidInitData,
+          hasValidUserAgent,
+          hasValidPlatform,
+          hasValidTheme,
+          hasValidViewport,
+          criticalCount,
+          secondaryCount,
+          initData: webApp.initData,
+          platform: webApp.platform,
+          userAgent: userAgent,
+        });
+
+        if (criticalCount >= 2 && secondaryCount >= 1) {
           this.isTelegramApp = true;
           this.webApp = webApp;
+
+          console.log("Telegram WebApp detected and initialized");
 
           // Initialize Telegram Web App
           this.webApp.ready();
@@ -48,11 +89,18 @@ class TelegramIntegration {
             this.updateViewport();
           });
         } else {
-          // Check server authentication
+          console.log(
+            "Not enough Telegram indicators (critical:",
+            criticalCount,
+            "secondary:",
+            secondaryCount,
+            "), checking server auth"
+          );
+          // Если локальные проверки не показали Telegram, проверяем сервер
           await this.checkServerAuth();
         }
       } else {
-        // Check server authentication
+        // Если нет Telegram WebApp API, проверяем сервер
         await this.checkServerAuth();
       }
       this.isInitialized = true;
@@ -71,9 +119,11 @@ class TelegramIntegration {
         this.isTelegramApp = true;
         this.user = data.user;
         this.addUsernameToHeader();
+        console.log("Telegram user authenticated via server:", data.user);
       } else {
         // Явно устанавливаем false для обычного браузера
         this.isTelegramApp = false;
+        console.log("Not authenticated via Telegram server");
       }
     } catch (error) {
       console.error("Error checking server auth:", error);
@@ -211,6 +261,7 @@ class TelegramIntegration {
 
   // Check if running in Telegram
   isInTelegram() {
+    console.log("isInTelegram called, result:", this.isTelegramApp);
     return this.isTelegramApp;
   }
 }

@@ -29,14 +29,20 @@ window.addEventListener("load", async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
-    // Проверка через сервер для определения Telegram
-    const serverResponse = await fetch("/api/user");
-    const serverData = await serverResponse.json();
-    const isInTelegram =
-      serverData.authenticated && serverData.source === "telegram";
+    // Проверяем, запущено ли приложение в Telegram
+    const isInTelegram = telegramIntegration.isInTelegram();
     const savedUserName = localStorage.getItem("stock101_username");
 
+    console.log("Telegram integration status:", {
+      isInTelegram: isInTelegram,
+      hasSavedUserName: !!savedUserName,
+      telegramIntegration: telegramIntegration,
+    });
+
     if (!isInTelegram && !savedUserName) {
+      console.log(
+        "Showing auth modal - user not in Telegram and no saved username"
+      );
       // Создаем UIManager напрямую для показа окна регистрации
       const { UIManager } = await import("./ui/UIManager.js");
       const uiManager = new UIManager();
@@ -63,6 +69,9 @@ window.addEventListener("load", async () => {
         });
       }
     } else {
+      console.log(
+        "Starting game directly - user in Telegram or has saved username"
+      );
       startGame();
     }
 
