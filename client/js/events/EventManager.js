@@ -105,6 +105,19 @@ export class EventManager {
         this.closeSettings()
       );
     }
+
+    // Add handlers for results and stats buttons
+    if (elements.topResultsBtn) {
+      this.addEventListener(elements.topResultsBtn, "click", () =>
+        this.showTopResults()
+      );
+    }
+
+    if (elements.userStatsBtn) {
+      this.addEventListener(elements.userStatsBtn, "click", () =>
+        this.showUserStats()
+      );
+    }
   }
 
   bindColorPickerEvents() {
@@ -182,6 +195,26 @@ export class EventManager {
 
   closeSettings() {
     this.uiManager.hideSettings();
+  }
+
+  async showTopResults() {
+    try {
+      const results = await this.game.gameResultService.getTopResults();
+      this.uiManager.showTopResults(results);
+    } catch (error) {
+      console.error("Error loading top results:", error);
+      // Можно добавить уведомление пользователю об ошибке
+    }
+  }
+
+  async showUserStats() {
+    try {
+      const stats = await this.game.gameResultService.getUserStats();
+      this.uiManager.showUserStats(stats);
+    } catch (error) {
+      console.error("Error loading user stats:", error);
+      // Можно добавить уведомление пользователю об ошибке
+    }
   }
 
   handleGlobalClick(e) {

@@ -30,6 +30,12 @@ export class UIManager {
       restartConfirmNo: document.getElementById(DOM_IDS.RESTART_CONFIRM_NO),
       newGameBtn: document.getElementById(DOM_IDS.NEW_GAME_BTN),
       closeSettingsBtn: document.getElementById(DOM_IDS.CLOSE_SETTINGS_BTN),
+      topResultsBtn: document.getElementById("topResultsBtn"),
+      userStatsBtn: document.getElementById("userStatsBtn"),
+      authModal: document.getElementById("authModal"),
+      authForm: document.getElementById("authForm"),
+      authUserName: document.getElementById("authUserName"),
+      authSubmitBtn: document.getElementById("authSubmitBtn"),
     };
   }
 
@@ -201,8 +207,134 @@ export class UIManager {
     return safeExecute(() => {
       if (this.elements.soundBtn) {
         this.elements.soundBtn.setAttribute("aria-pressed", isEnabled);
-        this.elements.soundBtn.classList.toggle("enabled", isEnabled);
+        this.elements.soundBtn.classList.toggle("active", isEnabled);
       }
     }, "Ошибка при обновлении кнопки звука");
+  }
+
+  showTopResults(results) {
+    return safeExecute(() => {
+      // Create modal for top results
+      const modal = document.createElement("div");
+      modal.className = "modal results-modal";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>🏆 Топ результатов</h2>
+            <button class="close-btn" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="results-list">
+              ${results
+                .map(
+                  (result, index) => `
+                <div class="result-item">
+                  <div class="result-rank">${index + 1}</div>
+                  <div class="result-info">
+                    <div class="result-name">${result.user_name}</div>
+                    <div class="result-source">${
+                      result.user_source === "telegram"
+                        ? "📱 Telegram"
+                        : "🌐 Web"
+                    }</div>
+                  </div>
+                  <div class="result-scores">
+                    <div class="result-score">Счет: ${result.max_score}</div>
+                    <div class="result-heap">Куча: ${result.max_heap}</div>
+                  </div>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add close functionality
+      const closeBtn = modal.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        document.body.removeChild(modal);
+      });
+
+      // Close on outside click
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+
+      document.body.appendChild(modal);
+    }, "Ошибка при показе топ результатов");
+  }
+
+  showUserStats(stats) {
+    return safeExecute(() => {
+      // Create modal for user stats
+      const modal = document.createElement("div");
+      modal.className = "modal stats-modal";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>📊 Ваша статистика</h2>
+            <button class="close-btn" aria-label="Закрыть">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="stats-list">
+              <div class="stat-item">
+                <div class="stat-label">Игр сыграно:</div>
+                <div class="stat-value">${stats.games_played || 0}</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Лучший счет:</div>
+                <div class="stat-value">${stats.best_score || 0}</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Лучшая куча:</div>
+                <div class="stat-value">${stats.best_heap || 0}</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Средний счет:</div>
+                <div class="stat-value">${Math.round(
+                  stats.avg_score || 0
+                )}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add close functionality
+      const closeBtn = modal.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        document.body.removeChild(modal);
+      });
+
+      // Close on outside click
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+
+      document.body.appendChild(modal);
+    }, "Ошибка при показе статистики пользователя");
+  }
+
+  showAuthModal() {
+    if (this.elements.authModal) {
+      this.elements.authModal.style.display = "flex";
+      this.elements.authModal.removeAttribute("inert");
+      if (this.elements.authUserName) {
+        setTimeout(() => this.elements.authUserName.focus(), 100);
+      }
+    }
+  }
+
+  hideAuthModal() {
+    if (this.elements.authModal) {
+      this.elements.authModal.style.display = "none";
+      this.elements.authModal.setAttribute("inert", "");
+    }
   }
 }

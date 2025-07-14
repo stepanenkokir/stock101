@@ -83,6 +83,22 @@
       >
         <span aria-hidden="true">⚙</span>
       </button>
+      <button
+        class="footer-btn"
+        id="topResultsBtn"
+        title="Топ результатов"
+        aria-label="Показать топ результатов"
+      >
+        <span aria-hidden="true">🏆</span>
+      </button>
+      <button
+        class="footer-btn"
+        id="userStatsBtn"
+        title="Моя статистика"
+        aria-label="Показать мою статистику"
+      >
+        <span aria-hidden="true">📊</span>
+      </button>
     </footer>
 
     <div
@@ -207,6 +223,51 @@
             Отмена
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Registration/Auth Modal -->
+    <div
+      class="modal"
+      id="authModal"
+      role="dialog"
+      aria-labelledby="authModalTitle"
+      inert
+      style="display: none"
+    >
+      <div class="modal-content">
+        <h2 id="authModalTitle">Добро пожаловать!</h2>
+        <p style="margin-bottom: 10px">
+          Пожалуйста, введите ваше имя для участия в рейтинге и сохранения
+          результатов.
+        </p>
+        <form id="authForm" autocomplete="off">
+          <input
+            type="text"
+            id="authUserName"
+            name="username"
+            placeholder="Ваше имя"
+            maxlength="20"
+            required
+            style="
+              width: 100%;
+              padding: 10px;
+              font-size: 16px;
+              border-radius: 6px;
+              border: none;
+              margin-bottom: 10px;
+            "
+          />
+          <div class="modal-actions">
+            <button
+              type="submit"
+              class="confirm-btn primary"
+              id="authSubmitBtn"
+            >
+              Сохранить
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 

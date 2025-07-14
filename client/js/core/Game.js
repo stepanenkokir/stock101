@@ -5,6 +5,7 @@ import { AnimationService } from "../services/AnimationService.js";
 import { SoundService } from "../services/SoundService.js";
 import { UIManager } from "../ui/UIManager.js";
 import { EventManager } from "../events/EventManager.js";
+import { GameResultService } from "../services/GameResultService.js";
 import { safeExecute } from "../utils/Utilities.js";
 
 export class Game {
@@ -16,6 +17,7 @@ export class Game {
     this.soundService = new SoundService();
     this.uiManager = new UIManager();
     this.eventManager = new EventManager(this, this.uiManager);
+    this.gameResultService = new GameResultService();
 
     // Event system for external listeners
     this.eventListeners = {};
@@ -107,7 +109,7 @@ export class Game {
 
       this.updateDisplay();
       this.renderBoard();
-      this.checkGameOver();
+      await this.checkGameOver();
     }, "Ошибка при обработке слияния плиток");
   }
 
@@ -171,8 +173,8 @@ export class Game {
     }, "Ошибка при обновлении доступных цветов");
   }
 
-  checkGameOver() {
-    return safeExecute(() => {
+  async checkGameOver() {
+    return safeExecute(async () => {
       const gameOverResult = this.gameLogic.checkGameOver(
         this.state.getBoard(),
         this.state.getHeap(),
@@ -181,6 +183,14 @@ export class Game {
 
       if (gameOverResult.isOver) {
         this.state.setGameOver(true);
+
+        // Save game result to database
+        try {
+          await this.saveGameResult();
+        } catch (error) {
+          console.error("Failed to save game result:", error);
+        }
+
         // Emit game over event
         this.emit("gameOver", this.state.getScore(), this.state.getGoal());
         // Воспроизводим звук проигрыша
@@ -194,6 +204,36 @@ export class Game {
         }, 1000);
       }
     }, "Ошибка при проверке окончания игры");
+  }
+
+  async saveGameResult() {
+    try {
+      let userName = null;
+      let isTelegram = false;
+      let userInfo = null;
+      if (
+        this.gameResultService &&
+        typeof this.gameResultService.getUserInfo === "function"
+      ) {
+        userInfo = await this.gameResultService.getUserInfo();
+        if (userInfo.authenticated && userInfo.user) {
+          userName = userInfo.user.username || userInfo.user.first_name;
+          isTelegram = true;
+        }
+      }
+      if (!isTelegram) {
+        userName = localStorage.getItem("stock101_username") || null;
+      }
+      await this.gameResultService.saveGameResult(
+        this.state.getHeap(),
+        this.state.getScore(),
+        userName
+      );
+      console.log("Game result saved successfully");
+    } catch (error) {
+      console.error("Error saving game result:", error);
+      throw error;
+    }
   }
 
   updateDisplay() {

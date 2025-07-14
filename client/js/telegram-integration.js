@@ -3,6 +3,7 @@ class TelegramIntegration {
   constructor() {
     this.isTelegramApp = false;
     this.user = null;
+    this.isInitialized = false;
     this.init();
   }
 
@@ -10,33 +11,54 @@ class TelegramIntegration {
     try {
       // Check if we're in Telegram Web App
       if (window.Telegram && window.Telegram.WebApp) {
-        this.isTelegramApp = true;
-        this.webApp = window.Telegram.WebApp;
+        // Дополнительная проверка: действительно ли мы в Telegram
+        const webApp = window.Telegram.WebApp;
+        const isActuallyInTelegram =
+          webApp.initData && webApp.initData.length > 0;
 
-        // Initialize Telegram Web App
-        this.webApp.ready();
+        // Дополнительные проверки
+        const userAgent = navigator.userAgent;
+        const isTelegramUserAgent =
+          userAgent.includes("TelegramWebApp") ||
+          userAgent.includes("Telegram");
+        const hasTelegramFeatures = webApp.platform && webApp.version;
 
-        // Set theme
-        this.webApp.setHeaderColor("#1a1a1a");
-        this.webApp.setBackgroundColor("#ffffff");
+        if (
+          isActuallyInTelegram ||
+          isTelegramUserAgent ||
+          hasTelegramFeatures
+        ) {
+          this.isTelegramApp = true;
+          this.webApp = webApp;
 
-        console.log("Telegram Web App initialized");
+          // Initialize Telegram Web App
+          this.webApp.ready();
 
-        // Listen for theme changes
-        this.webApp.onEvent("themeChanged", () => {
-          this.updateTheme();
-        });
+          // Set theme
+          this.webApp.setHeaderColor("#1a1a1a");
+          this.webApp.setBackgroundColor("#ffffff");
 
-        // Listen for viewport changes
-        this.webApp.onEvent("viewportChanged", () => {
-          this.updateViewport();
-        });
+          // Listen for theme changes
+          this.webApp.onEvent("themeChanged", () => {
+            this.updateTheme();
+          });
+
+          // Listen for viewport changes
+          this.webApp.onEvent("viewportChanged", () => {
+            this.updateViewport();
+          });
+        } else {
+          // Check server authentication
+          await this.checkServerAuth();
+        }
       } else {
         // Check server authentication
         await this.checkServerAuth();
       }
+      this.isInitialized = true;
     } catch (error) {
       console.error("Error initializing Telegram integration:", error);
+      this.isInitialized = true;
     }
   }
 
@@ -49,10 +71,14 @@ class TelegramIntegration {
         this.isTelegramApp = true;
         this.user = data.user;
         this.addUsernameToHeader();
-        console.log("User authenticated via server:", this.user);
+      } else {
+        // Явно устанавливаем false для обычного браузера
+        this.isTelegramApp = false;
       }
     } catch (error) {
       console.error("Error checking server auth:", error);
+      // В случае ошибки тоже устанавливаем false
+      this.isTelegramApp = false;
     }
   }
 

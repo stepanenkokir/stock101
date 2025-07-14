@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import dotenv from "dotenv";
 import path from "path";
+import Database from "./database.js";
 
 // Load environment variables
 dotenv.config();
@@ -17,6 +18,9 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.NODE_ENV === "development" ? "127.0.0.1" : "0.0.0.0";
+
+// Initialize database
+const database = new Database();
 
 // Initialize Telegram bot
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -103,6 +107,98 @@ app.get("/api/user", (req, res) => {
   }
 });
 
+// API endpoint to save game result
+app.post("/api/game-result", async (req, res) => {
+  try {
+    const { maxHeap, maxScore, userName } = req.body;
+
+    if (!maxHeap || !maxScore) {
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: maxHeap, maxScore" });
+    }
+
+    let userData = {
+      user_id: null,
+      user_name: userName || "Anonymous",
+      user_source: "web",
+    };
+
+    // If user is authenticated via Telegram, use their data
+    if (req.telegramUser) {
+      userData = {
+        user_id: req.telegramUser.id.toString(),
+        user_name:
+          req.telegramUser.username ||
+          req.telegramUser.first_name ||
+          "Telegram User",
+        user_source: "telegram",
+      };
+    }
+
+    const resultId = await database.saveGameResult(userData, maxHeap, maxScore);
+
+    res.json({
+      success: true,
+      resultId,
+      message: "Game result saved successfully",
+    });
+  } catch (error) {
+    console.error("Error saving game result:", error);
+    res.status(500).json({ error: "Failed to save game result" });
+  }
+});
+
+// API endpoint to get top results
+app.get("/api/top-results", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const results = await database.getTopResults(limit);
+    res.json({ results });
+  } catch (error) {
+    console.error("Error getting top results:", error);
+    res.status(500).json({ error: "Failed to get top results" });
+  }
+});
+
+// API endpoint to get user's best result
+app.get("/api/user-best", async (req, res) => {
+  try {
+    if (!req.telegramUser) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const userId = req.telegramUser.id.toString();
+    const result = await database.getUserBestResult(userId);
+
+    if (result) {
+      res.json({ result });
+    } else {
+      res.json({ result: null, message: "No results found for this user" });
+    }
+  } catch (error) {
+    console.error("Error getting user best result:", error);
+    res.status(500).json({ error: "Failed to get user best result" });
+  }
+});
+
+// API endpoint to get user statistics
+app.get("/api/user-stats", async (req, res) => {
+  try {
+    if (!req.telegramUser) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const userId = req.telegramUser.id.toString();
+    const stats = await database.getUserStats(userId);
+
+    res.json({ stats });
+  } catch (error) {
+    console.error("Error getting user stats:", error);
+    res.status(500).json({ error: "Failed to get user stats" });
+  }
+});
+
 // Telegram webhook endpoint
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
   try {
@@ -183,21 +279,38 @@ if (process.env.NODE_ENV === "production" && process.env.WEBHOOK_URL) {
     });
 }
 
-// Start server
-app.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
-  if (process.env.NODE_ENV === "development") {
-    console.log(`Game available at: http://${HOST}:${PORT}`);
-  } else {
-    console.log(`Game available at: https://stock101.stekir.com`);
+// Initialize database and start server
+async function startServer() {
+  try {
+    await database.init();
+
+    app.listen(PORT, HOST, () => {
+      console.log(`Server running on ${HOST}:${PORT}`);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`Game available at: http://${HOST}:${PORT}`);
+      } else {
+        console.log(`Game available at: https://stock101.stekir.com`);
+      }
+    });
+  } catch (error) {
+    console.error("Failed to initialize database:", error);
+    process.exit(1);
   }
-});
+}
+
+startServer();
 
 // Graceful shutdown
-process.once("SIGINT", () => {
+process.once("SIGINT", async () => {
+  console.log("Shutting down gracefully...");
   bot.stop("SIGINT");
+  await database.close();
+  process.exit(0);
 });
 
-process.once("SIGTERM", () => {
+process.once("SIGTERM", async () => {
+  console.log("Shutting down gracefully...");
   bot.stop("SIGTERM");
+  await database.close();
+  process.exit(0);
 });
