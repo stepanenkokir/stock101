@@ -168,6 +168,15 @@ export class EventManager {
 
   startNewGame() {
     this.uiManager.hideGameOver();
+
+    // Hide Telegram main button when starting new game
+    if (
+      window.telegramIntegration &&
+      window.telegramIntegration.isInTelegram()
+    ) {
+      window.telegramIntegration.hideMainButton();
+    }
+
     this.game.restart();
   }
 
@@ -181,6 +190,14 @@ export class EventManager {
     if (e.target === elements.gameOverModal) {
       elements.gameOverModal.style.display = "none";
       elements.gameOverModal.setAttribute("inert", "");
+
+      // Hide Telegram main button when clicking outside modal
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
     }
     if (e.target === elements.settingsPanel) {
       this.uiManager.hideSettings();
@@ -232,6 +249,14 @@ export class EventManager {
     ) {
       elements.gameOverModal.style.display = "none";
       elements.gameOverModal.setAttribute("inert", "");
+
+      // Hide Telegram main button when closing modal with Escape
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
     } else if (
       elements.settingsPanel &&
       elements.settingsPanel.style.display !== "none"

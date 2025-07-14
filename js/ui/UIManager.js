@@ -141,6 +141,14 @@ export class UIManager {
         this.elements.gameOverModal.style.display = "none";
         this.elements.gameOverModal.setAttribute("inert", "");
       }
+
+      // Hide Telegram main button when game over modal is closed
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
     }, "Ошибка при скрытии диалога окончания игры");
   }
 

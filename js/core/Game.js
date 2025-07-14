@@ -130,6 +130,14 @@ export class Game {
       this.state.setGameOver(false);
       this.uiManager.hideGameOver();
 
+      // Hide Telegram main button when undoing move
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
+
       if (this.state.restoreState()) {
         this.updateDisplay();
         this.renderBoard();
@@ -139,6 +147,14 @@ export class Game {
 
   restart() {
     return safeExecute(() => {
+      // Hide Telegram main button when restarting game
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
+
       // Очищаем старые события перед созданием нового состояния
       if (this.eventManager) {
         this.eventManager.destroy();

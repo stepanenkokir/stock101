@@ -23,6 +23,9 @@ window.addEventListener("load", () => {
     // Initialize Telegram integration
     telegramIntegration = new TelegramIntegration();
 
+    // Make telegramIntegration globally available for UIManager
+    window.telegramIntegration = telegramIntegration;
+
     // Start the game
     const newGame = new Game();
     setGame(newGame);
@@ -45,11 +48,25 @@ window.addEventListener("load", () => {
           telegramIntegration.showMainButton("Поделиться результатом", () => {
             const shareText = `🎮 Stock 101\n\nМой результат: ${score} очков\nЦель: ${goal} очков\n\nПопробуй и ты!`;
             if (telegramIntegration.webApp) {
-              telegramIntegration.webApp.switchInlineQuery(shareText, [
-                "users",
-                "groups",
-                "channels",
-              ]);
+              try {
+                // Try to use switchInlineQuery first
+                telegramIntegration.webApp.switchInlineQuery(shareText, [
+                  "users",
+                  "groups",
+                  "channels",
+                ]);
+              } catch (error) {
+                // Fallback: copy to clipboard and show message
+                navigator.clipboard
+                  .writeText(shareText)
+                  .then(() => {
+                    alert("Результат скопирован в буфер обмена!");
+                  })
+                  .catch(() => {
+                    // If clipboard is not available, just show the text
+                    alert(`Результат:\n${shareText}`);
+                  });
+              }
             }
           });
         }
