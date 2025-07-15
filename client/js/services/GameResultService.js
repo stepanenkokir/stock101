@@ -8,16 +8,52 @@ export class GameResultService {
       if (!userName) {
         userName = localStorage.getItem("stock101_username") || null;
       }
+
+      // Prepare headers for Telegram user data
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const user = window.telegramIntegration.getUser();
+        if (user) {
+          headers["x-telegram-user"] = encodeURIComponent(
+            JSON.stringify(user)
+          );
+        }
+
+        if (
+          window.telegramIntegration.webApp &&
+          window.telegramIntegration.webApp.initData
+        ) {
+          headers["x-telegram-webapp-init-data"] =
+            window.telegramIntegration.webApp.initData;
+        }
+      }
+
+      const body = {
+        maxHeap,
+        maxScore,
+        userName,
+      };
+
+      // Если есть initData, добавим его явно в body
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram() &&
+        window.telegramIntegration.webApp &&
+        window.telegramIntegration.webApp.initData
+      ) {
+        body.initData = window.telegramIntegration.webApp.initData;
+      }
+
       const response = await fetch(`${this.baseUrl}/api/game-result`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          maxHeap,
-          maxScore,
-          userName,
-        }),
+        headers: headers,
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -34,8 +70,35 @@ export class GameResultService {
 
   async getTopResults(limit = 10) {
     try {
+      // Prepare headers for Telegram user data
+      const headers = {};
+
+      // If we're in Telegram, attach headers
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const user = window.telegramIntegration.getUser();
+        if (user) {
+          headers["x-telegram-user"] = encodeURIComponent(
+            JSON.stringify(user)
+          );
+        }
+
+        if (
+          window.telegramIntegration.webApp &&
+          window.telegramIntegration.webApp.initData
+        ) {
+          headers["x-telegram-webapp-init-data"] =
+            window.telegramIntegration.webApp.initData;
+        }
+      }
+
       const response = await fetch(
-        `${this.baseUrl}/api/top-results?limit=${limit}`
+        `${this.baseUrl}/api/top-results?limit=${limit}`,
+        {
+          headers: headers,
+        }
       );
 
       if (!response.ok) {

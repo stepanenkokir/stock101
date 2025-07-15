@@ -126,7 +126,7 @@ app.get("/api/user", (req, res) => {
 // API endpoint to save game result
 app.post("/api/game-result", async (req, res) => {
   try {
-    const { maxHeap, maxScore, userName } = req.body;
+    const { maxHeap, maxScore, userName, initData } = req.body;
 
     if (!maxHeap || !maxScore) {
       return res
@@ -139,6 +139,14 @@ app.post("/api/game-result", async (req, res) => {
       user_name: userName || "Anonymous",
       user_source: "web",
     };
+
+    // Если пользователь не определён через middleware, но есть initData в body, пробуем его верифицировать
+    if (!req.telegramUser && initData && verifyInitData(initData, process.env.BOT_TOKEN)) {
+      const extracted = extractUser(initData);
+      if (extracted) {
+        req.telegramUser = extracted;
+      }
+    }
 
     // If user is authenticated via Telegram, use their data
     if (req.telegramUser) {
