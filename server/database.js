@@ -45,7 +45,6 @@ class Database {
           console.error("Error creating table:", err);
           reject(err);
         } else {
-          console.log("Game results table ready");
           resolve();
         }
       });
@@ -69,7 +68,6 @@ class Database {
             console.error("Error saving game result:", err);
             reject(err);
           } else {
-            console.log(`Game result saved with ID: ${this.lastID}`);
             resolve(this.lastID);
           }
         }
@@ -149,7 +147,6 @@ class Database {
             console.error("Error closing database:", err);
             reject(err);
           } else {
-            console.log("Database connection closed");
             resolve();
           }
         });

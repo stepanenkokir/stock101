@@ -57,21 +57,9 @@ class TelegramIntegration {
         const criticalCount = criticalIndicators.filter(Boolean).length;
         const secondaryCount = secondaryIndicators.filter(Boolean).length;
 
-        console.log("Telegram detection indicators:", {
-          hasValidInitData,
-          hasValidUserAgent,
-          hasValidPlatform,
-          hasValidTheme,
-          hasValidViewport,
-          criticalCount,
-          secondaryCount,
-        });
-
         if (criticalCount >= 1 && secondaryCount >= 1) {
           this.isTelegramApp = true;
           this.webApp = webApp;
-
-          console.log("Telegram WebApp detected and initialized");
 
           // Try to get user data from initData
           if (webApp.initData) {
@@ -80,7 +68,6 @@ class TelegramIntegration {
               const userParam = params.get("user");
               if (userParam) {
                 this.user = JSON.parse(decodeURIComponent(userParam));
-                console.log("User data extracted from initData:", this.user);
               }
             } catch (error) {
               console.error("Error parsing user data from initData:", error);
@@ -104,7 +91,7 @@ class TelegramIntegration {
             this.updateViewport();
           });
         } else {
-          console.log("Not enough Telegram indicators, checking server auth");
+          console.error("Not enough Telegram indicators, checking server auth");
           // Если локальные проверки не показали Telegram, проверяем сервер
           await this.checkServerAuth();
         }
