@@ -5,6 +5,7 @@ import { AnimationService } from "../services/AnimationService.js";
 import { SoundService } from "../services/SoundService.js";
 import { UIManager } from "../ui/UIManager.js";
 import { EventManager } from "../events/EventManager.js";
+import { GameResultService } from "../services/GameResultService.js";
 import { safeExecute } from "../utils/Utilities.js";
 
 export class Game {
@@ -16,6 +17,10 @@ export class Game {
     this.soundService = new SoundService();
     this.uiManager = new UIManager();
     this.eventManager = new EventManager(this, this.uiManager);
+    this.gameResultService = new GameResultService();
+
+    // Event system for external listeners
+    this.eventListeners = {};
 
     this.initialize();
   }
@@ -86,6 +91,9 @@ export class Game {
       this.state.updateScore(totalValue);
       this.state.updateHeap(totalValue);
 
+      // Emit score changed event
+      this.emit("scoreChanged", this.state.getScore());
+
       // Воспроизводим звук соединения плиток
       this.soundService.playSound("merge");
 
@@ -101,7 +109,7 @@ export class Game {
 
       this.updateDisplay();
       this.renderBoard();
-      this.checkGameOver();
+      await this.checkGameOver();
     }, "Ошибка при обработке слияния плиток");
   }
 
@@ -124,6 +132,14 @@ export class Game {
       this.state.setGameOver(false);
       this.uiManager.hideGameOver();
 
+      // Hide Telegram main button when undoing move
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
+
       if (this.state.restoreState()) {
         this.updateDisplay();
         this.renderBoard();
@@ -133,6 +149,14 @@ export class Game {
 
   restart() {
     return safeExecute(() => {
+      // Hide Telegram main button when restarting game
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
+
       // Очищаем старые события перед созданием нового состояния
       if (this.eventManager) {
         this.eventManager.destroy();
@@ -149,8 +173,8 @@ export class Game {
     }, "Ошибка при обновлении доступных цветов");
   }
 
-  checkGameOver() {
-    return safeExecute(() => {
+  async checkGameOver() {
+    return safeExecute(async () => {
       const gameOverResult = this.gameLogic.checkGameOver(
         this.state.getBoard(),
         this.state.getHeap(),
@@ -159,6 +183,16 @@ export class Game {
 
       if (gameOverResult.isOver) {
         this.state.setGameOver(true);
+
+        // Save game result to database
+        try {
+          await this.saveGameResult();
+        } catch (error) {
+          console.error("Failed to save game result:", error);
+        }
+
+        // Emit game over event
+        this.emit("gameOver", this.state.getScore(), this.state.getGoal());
         // Воспроизводим звук проигрыша
         this.soundService.playSound("gameOver");
         // Добавляем секундную паузу перед показом диалога
@@ -170,6 +204,36 @@ export class Game {
         }, 1000);
       }
     }, "Ошибка при проверке окончания игры");
+  }
+
+  async saveGameResult() {
+    try {
+      let userName = null;
+      let isTelegram = false;
+      let userInfo = null;
+      if (
+        this.gameResultService &&
+        typeof this.gameResultService.getUserInfo === "function"
+      ) {
+        userInfo = await this.gameResultService.getUserInfo();
+        if (userInfo.authenticated && userInfo.user) {
+          userName = userInfo.user.username || userInfo.user.first_name;
+          isTelegram = true;
+        }
+      }
+      if (!isTelegram) {
+        userName = localStorage.getItem("stock101_username") || null;
+      }
+      await this.gameResultService.saveGameResult(
+        this.state.getHeap(),
+        this.state.getScore(),
+        userName
+      );
+      console.log("Game result saved successfully");
+    } catch (error) {
+      console.error("Error saving game result:", error);
+      throw error;
+    }
   }
 
   updateDisplay() {
@@ -213,6 +277,36 @@ export class Game {
     }
     if (this.soundService) {
       this.soundService.destroy();
+    }
+    // Clear event listeners
+    this.eventListeners = {};
+  }
+
+  // Event system methods
+  on(eventName, callback) {
+    if (!this.eventListeners[eventName]) {
+      this.eventListeners[eventName] = [];
+    }
+    this.eventListeners[eventName].push(callback);
+  }
+
+  off(eventName, callback) {
+    if (this.eventListeners[eventName]) {
+      this.eventListeners[eventName] = this.eventListeners[eventName].filter(
+        (cb) => cb !== callback
+      );
+    }
+  }
+
+  emit(eventName, ...args) {
+    if (this.eventListeners[eventName]) {
+      this.eventListeners[eventName].forEach((callback) => {
+        try {
+          callback(...args);
+        } catch (error) {
+          console.error(`Error in event listener for ${eventName}:`, error);
+        }
+      });
     }
   }
 }

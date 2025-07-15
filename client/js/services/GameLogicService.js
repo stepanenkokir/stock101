@@ -141,6 +141,9 @@ export class GameLogicService {
               color: randomColor,
               new: true,
             };
+          } else if (newBoard[i][j] && newBoard[i][j].new) {
+            // Clear the new flag for existing tiles
+            delete newBoard[i][j].new;
           }
         }
       }

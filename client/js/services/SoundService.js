@@ -146,7 +146,7 @@ export class SoundService {
         this.audioContext = new (window.AudioContext ||
           window.webkitAudioContext)();
       } catch (error) {
-        console.warn("Web Audio API не поддерживается");
+        console.error("Web Audio API не поддерживается");
         return null;
       }
     }

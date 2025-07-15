@@ -43,15 +43,14 @@ export class EventManager {
   bindButtonEvents() {
     const elements = this.uiManager.getAllElements();
 
-    if (elements.undoBtn) {
-      this.addEventListener(elements.undoBtn, "click", () => this.game.undo());
-      elements.undoBtn.setAttribute("aria-label", "Отменить ход");
-    }
-
-    if (elements.undoBtn2) {
-      this.addEventListener(elements.undoBtn2, "click", () => this.game.undo());
-      elements.undoBtn2.setAttribute("aria-label", "Отменить ход");
-    }
+    // Bind undo buttons (both in footer and modal)
+    const undoButtons = [elements.undoBtn, elements.undoBtnModal].filter(
+      Boolean
+    );
+    undoButtons.forEach((button) => {
+      this.addEventListener(button, "click", () => this.game.undo());
+      button.setAttribute("aria-label", "Отменить ход");
+    });
 
     if (elements.repaintBtn) {
       this.addEventListener(elements.repaintBtn, "click", () =>
@@ -81,7 +80,7 @@ export class EventManager {
       elements.soundBtn.setAttribute("aria-label", "Включить/выключить звук");
     }
 
-    // Добавляем обработчики для кнопок подтверждения перезапуска
+    // Add handlers for restart confirmation buttons
     if (elements.restartConfirmYes) {
       this.addEventListener(elements.restartConfirmYes, "click", () =>
         this.confirmRestart()
@@ -91,6 +90,32 @@ export class EventManager {
     if (elements.restartConfirmNo) {
       this.addEventListener(elements.restartConfirmNo, "click", () =>
         this.cancelRestart()
+      );
+    }
+
+    // Add handlers for new buttons
+    if (elements.newGameBtn) {
+      this.addEventListener(elements.newGameBtn, "click", () =>
+        this.startNewGame()
+      );
+    }
+
+    if (elements.closeSettingsBtn) {
+      this.addEventListener(elements.closeSettingsBtn, "click", () =>
+        this.closeSettings()
+      );
+    }
+
+    // Add handlers for results and stats buttons
+    if (elements.topResultsBtn) {
+      this.addEventListener(elements.topResultsBtn, "click", () =>
+        this.showTopResults()
+      );
+    }
+
+    if (elements.userStatsBtn) {
+      this.addEventListener(elements.userStatsBtn, "click", () =>
+        this.showUserStats()
       );
     }
   }
@@ -154,12 +179,72 @@ export class EventManager {
     this.uiManager.hideRestartConfirm();
   }
 
+  startNewGame() {
+    this.uiManager.hideGameOver();
+
+    // Hide Telegram main button when starting new game
+    if (
+      window.telegramIntegration &&
+      window.telegramIntegration.isInTelegram()
+    ) {
+      window.telegramIntegration.hideMainButton();
+    }
+
+    this.game.restart();
+  }
+
+  closeSettings() {
+    this.uiManager.hideSettings();
+  }
+
+  async showTopResults() {
+    try {
+      const results = await this.game.gameResultService.getTopResults();
+      this.uiManager.showTopResults(results);
+    } catch (error) {
+      console.error("Error loading top results:", error);
+      // Можно добавить уведомление пользователю об ошибке
+    }
+  }
+
+  async showUserStats() {
+    try {
+      // Проверяем, запущено ли приложение в Telegram
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        const stats = await this.game.gameResultService.getUserStats();
+        this.uiManager.showUserStats(stats);
+      } else {
+        // В браузере показываем сообщение о том, что статистика доступна только в Telegram
+        this.uiManager.showTelegramOnlyMessage();
+      }
+    } catch (error) {
+      console.error("Error loading user stats:", error);
+      // Если ошибка 401 в Telegram, показываем сообщение об ошибке
+      if (error.message && error.message.includes("401")) {
+        this.uiManager.showAuthError();
+      } else {
+        this.uiManager.showTelegramOnlyMessage();
+      }
+    }
+  }
+
   handleGlobalClick(e) {
     const elements = this.uiManager.getAllElements();
 
     if (e.target === elements.gameOverModal) {
       elements.gameOverModal.style.display = "none";
       elements.gameOverModal.setAttribute("inert", "");
+
+      // Hide Telegram main button when clicking outside modal
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
     }
     if (e.target === elements.settingsPanel) {
       this.uiManager.hideSettings();
@@ -176,9 +261,9 @@ export class EventManager {
         break;
       case "r":
       case "R":
-        if (e.ctrlKey || e.metaKey) {
+        if (!e.ctrlKey && !e.metaKey) {
           e.preventDefault();
-          this.game.restart();
+          this.handleRestart();
         }
         break;
       case "z":
@@ -188,30 +273,45 @@ export class EventManager {
           this.game.undo();
         }
         break;
+      case "p":
+      case "P":
+        e.preventDefault();
+        this.toggleRepaintMode();
+        break;
+      case "s":
+      case "S":
+        e.preventDefault();
+        this.toggleSound();
+        break;
     }
   }
 
   handleEscapeKey() {
     const elements = this.uiManager.getAllElements();
 
+    // Close modals in order of priority
     if (
       elements.gameOverModal &&
-      elements.gameOverModal.style.display === "flex"
+      elements.gameOverModal.style.display !== "none"
     ) {
       elements.gameOverModal.style.display = "none";
       elements.gameOverModal.setAttribute("inert", "");
-    }
 
-    if (
+      // Hide Telegram main button when closing modal with Escape
+      if (
+        window.telegramIntegration &&
+        window.telegramIntegration.isInTelegram()
+      ) {
+        window.telegramIntegration.hideMainButton();
+      }
+    } else if (
       elements.settingsPanel &&
-      elements.settingsPanel.style.display === "block"
+      elements.settingsPanel.style.display !== "none"
     ) {
       this.uiManager.hideSettings();
-    }
-
-    if (
+    } else if (
       elements.restartConfirmModal &&
-      elements.restartConfirmModal.style.display === "flex"
+      elements.restartConfirmModal.style.display !== "none"
     ) {
       this.uiManager.hideRestartConfirm();
     }

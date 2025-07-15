@@ -9,9 +9,11 @@
     <meta name="description" content="Stock 101 - логическая игра с плитками" />
     <meta name="keywords" content="игра, логика, плитки, головоломка" />
     <title>Stock 101</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <header class="header" role="banner">
       <div class="stat" role="group" aria-label="Статистика игры">
         <div class="stat-label">Heap</div>
@@ -81,6 +83,22 @@
       >
         <span aria-hidden="true">⚙</span>
       </button>
+      <button
+        class="footer-btn"
+        id="topResultsBtn"
+        title="Топ результатов"
+        aria-label="Показать топ результатов"
+      >
+        <span aria-hidden="true">🏆</span>
+      </button>
+      <button
+        class="footer-btn"
+        id="userStatsBtn"
+        title="Моя статистика"
+        aria-label="Показать мою статистику"
+      >
+        <span aria-hidden="true">📊</span>
+      </button>
     </footer>
 
     <div
@@ -95,7 +113,7 @@
         <h2 id="gameOverTitle">Игра окончена!</h2>
         <p id="gameOverText" role="status"></p>
         <div class="modal-actions">
-          <button onclick="startNewGame()" aria-label="Начать новую игру">
+          <button id="newGameBtn" aria-label="Начать новую игру">
             Новая игра
           </button>
           <button
@@ -169,7 +187,7 @@
         </div>
       </div>
       <div style="text-align: center; margin-top: 15px">
-        <button onclick="closeSettings()" aria-label="Закрыть настройки">
+        <button id="closeSettingsBtn" aria-label="Закрыть настройки">
           Закрыть
         </button>
       </div>
@@ -205,6 +223,51 @@
             Отмена
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Registration/Auth Modal -->
+    <div
+      class="modal"
+      id="authModal"
+      role="dialog"
+      aria-labelledby="authModalTitle"
+      inert
+      style="display: none"
+    >
+      <div class="modal-content">
+        <h2 id="authModalTitle">Добро пожаловать!</h2>
+        <p style="margin-bottom: 10px">
+          Пожалуйста, введите ваше имя для участия в рейтинге и сохранения
+          результатов.
+        </p>
+        <form id="authForm" autocomplete="off">
+          <input
+            type="text"
+            id="authUserName"
+            name="username"
+            placeholder="Ваше имя"
+            maxlength="20"
+            required
+            style="
+              width: 100%;
+              padding: 10px;
+              font-size: 16px;
+              border-radius: 6px;
+              border: none;
+              margin-bottom: 10px;
+            "
+          />
+          <div class="modal-actions">
+            <button
+              type="submit"
+              class="confirm-btn primary"
+              id="authSubmitBtn"
+            >
+              Сохранить
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 

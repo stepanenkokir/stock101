@@ -1,6 +1,23 @@
-# Stock 101 - Refactored Architecture
+# Stock 101 - Telegram MiniApp
 
-This project has been refactored following SOLID, KISS, YAGNI, and DRY principles to create a maintainable and scalable codebase.
+Логическая игра с плитками, интегрированная с Telegram MiniApp. Соберите 101 очко для победы!
+
+## 🚀 Telegram MiniApp
+
+Приложение теперь доступно как Telegram MiniApp с автоматической авторизацией пользователей и интеграцией с Telegram Bot API.
+
+### Особенности Telegram интеграции:
+
+- ✅ Автоматическая авторизация пользователей Telegram
+- ✅ Отображение username в заголовке игры
+- ✅ Адаптация интерфейса под Telegram Web App
+- ✅ Отправка данных о событиях игры в бота
+- ✅ Кнопка "Поделиться результатом" при завершении игры
+- ✅ Поддержка тем Telegram (светлая/темная)
+
+## Архитектура
+
+Проект следует принципам SOLID, KISS, YAGNI и DRY для создания поддерживаемой и масштабируемой кодовой базы.
 
 ## Architecture Overview
 
@@ -109,13 +126,27 @@ js/
 5. **Reusability**: Components can be reused in different contexts
 6. **Cross-platform**: Mobile support ensures the game works on all devices
 
-## Usage
+## Использование
 
-The game is initialized through `js/app.js` which creates a new `Game` instance and sets up all necessary components. The HTML file simply includes the app.js module:
+### Веб-версия
+
+Игра инициализируется через `js/app.js`, который создает новый экземпляр `Game` и настраивает все необходимые компоненты. HTML файл просто включает модуль app.js:
 
 ```html
 <script type="module" src="js/app.js"></script>
 ```
+
+### Telegram MiniApp
+
+Для запуска в Telegram:
+
+1. Отправьте `/start` боту
+2. Нажмите кнопку "🎮 Играть в Stock 101"
+3. Игра откроется в Telegram с автоматической авторизацией
+
+### Развертывание
+
+Подробные инструкции по настройке и развертыванию смотрите в [TELEGRAM_SETUP.md](TELEGRAM_SETUP.md).
 
 ## Error Handling
 
@@ -128,6 +159,16 @@ All components use the `safeExecute` utility function to provide consistent erro
 - Optimized animation using requestAnimationFrame
 - Touch event optimization for mobile devices
 - Responsive design for cross-platform compatibility
+
+## Code quality
+
+```bash
+# Lint all JS files
+npm run lint
+
+# Automatically format with Prettier
+npm run format
+```
 
 ## File Structure Details
 

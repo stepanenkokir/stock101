@@ -1,0 +1,36 @@
+{
+  "name": "stock101-telegram",
+  "version": "1.0.0",
+  "description": "Stock 101 game with Telegram MiniApp support",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "set NODE_ENV=production && node server/server.js",
+    "dev": "set NODE_ENV=development && node --watch server/server.js",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "telegraf": "^4.15.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1"
+  },
+  "keywords": [
+    "game",
+    "telegram",
+    "miniapp",
+    "stock101"
+  ],
+  "author": "",
+  "license": "MIT"
+}
