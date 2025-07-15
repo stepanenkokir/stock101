@@ -208,7 +208,18 @@ app.get("/api/user-stats", async (req, res) => {
     const userId = req.telegramUser.id.toString();
     const stats = await database.getUserStats(userId);
 
-    res.json({ stats });
+    if (stats) {
+      res.json({ stats });
+    } else {
+      res.json({
+        stats: {
+          games_played: 0,
+          best_score: 0,
+          best_heap: 0,
+          avg_score: 0
+        }
+      });
+    }
   } catch (error) {
     console.error("Error getting user stats:", error);
     res.status(500).json({ error: "Failed to get user stats" });
