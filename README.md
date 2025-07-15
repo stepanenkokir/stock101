@@ -160,6 +160,16 @@ All components use the `safeExecute` utility function to provide consistent erro
 - Touch event optimization for mobile devices
 - Responsive design for cross-platform compatibility
 
+## Code quality
+
+```bash
+# Lint all JS files
+npm run lint
+
+# Automatically format with Prettier
+npm run format
+```
+
 ## File Structure Details
 
 ### Configuration Layer

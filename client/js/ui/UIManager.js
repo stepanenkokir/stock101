@@ -265,6 +265,8 @@ export class UIManager {
       });
 
       document.body.appendChild(modal);
+      // Make modal visible (CSS: .modal.show { display: flex })
+      modal.classList.add("show");
     }, "Ошибка при показе топ результатов");
   }
 
@@ -318,6 +320,8 @@ export class UIManager {
       });
 
       document.body.appendChild(modal);
+      // Make modal visible
+      modal.classList.add("show");
     }, "Ошибка при показе статистики пользователя");
   }
 
@@ -459,6 +463,8 @@ export class UIManager {
       });
 
       document.body.appendChild(modal);
+      // Make modal visible
+      modal.classList.add("show");
     }, "Ошибка при показе сообщения об ошибке авторизации");
   }
 }

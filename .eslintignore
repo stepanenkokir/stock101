@@ -1,0 +1,3 @@
+node_modules/
+server/game_results.db
+client/js/lib/ 

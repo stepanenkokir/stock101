@@ -8,6 +8,7 @@ import { dirname, join } from "path";
 import dotenv from "dotenv";
 import path from "path";
 import Database from "./database.js";
+import { verifyInitData, extractUser } from "./telegramAuth.js";
 
 // Load environment variables
 dotenv.config();
@@ -69,32 +70,29 @@ const telegramAuthMiddleware = (req, res, next) => {
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   console.log("InitData = ", initData, ip);
 
-  if (initData) {
-    try {
-      // Parse Telegram init data
-      const params = new URLSearchParams(initData);
-      const user = params.get("user");
-
-      console.log("User:", user);
-      if (user) {
-        const userData = JSON.parse(decodeURIComponent(user));
-        req.telegramUser = userData;
-        console.log("Telegram user authenticated:", userData.username);
-      }
-    } catch (error) {
-      console.error("Error parsing Telegram init data:", error);
+  if (initData && verifyInitData(initData, process.env.BOT_TOKEN)) {
+    const userData = extractUser(initData);
+    if (userData) {
+      req.telegramUser = userData;
+      console.log("Telegram user verified:", userData.username);
+    } else {
+      console.warn("Verified initData but failed to extract user");
     }
+  } else if (initData) {
+    console.warn("Invalid Telegram initData signature, ignoring");
   }
 
-  // Additional check for Telegram WebApp user data in headers
-  const telegramUser = req.headers["x-telegram-user"];
-  if (telegramUser && !req.telegramUser) {
-    try {
-      const userData = JSON.parse(decodeURIComponent(telegramUser));
-      req.telegramUser = userData;
-      console.log("Telegram user authenticated via header:", userData.username);
-    } catch (error) {
-      console.error("Error parsing Telegram user header:", error);
+  // Additional check for Telegram WebApp user data in headers (fallback)
+  if (!req.telegramUser) {
+    const telegramUser = req.headers["x-telegram-user"];
+    if (telegramUser) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(telegramUser));
+        req.telegramUser = userData;
+        console.log("Telegram user (header, unverified):", userData.username);
+      } catch (error) {
+        console.error("Error parsing Telegram user header:", error);
+      }
     }
   }
 
